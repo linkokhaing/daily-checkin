@@ -1,0 +1,87 @@
+<body>
+    
+    
+    <div class="app">
+
+ <nav>
+    <button onclick="showToday()">TODAY</button>
+    <button onclick="showHistory()">HISTORY</button>
+ </nav>
+
+    <div id="today-page">
+
+    </div>
+
+    <div id="history-page">
+    <div id="history"></div>
+    </div>
+
+        <h1>DAILY CHECK-IN</h1>
+
+        <p>How many hours did you sleep?</p>
+
+        <input
+            type="number"
+            id="sleep"
+            placeholder="e.g. 7.5"
+            step="0.5"
+        >
+
+        <button onclick="saveSleep()">SAVE</button>
+
+        <p id="message"></p>
+
+        <h2>Did you exercise today?</h2>
+
+<div class="workout-buttons">
+    <button onclick="saveWorkout('Yes')">YES</button>
+    <button onclick="saveWorkout('No')">NO</button>
+</div>
+
+<p id="workout-message"></p>
+
+<h2>How long did you study?</h2>
+
+<input
+    type="number"
+    id="study"
+    placeholder="Minutes"
+    min="0"
+>
+
+<button onclick="saveStudy()">SAVE STUDY</button>
+
+<p id="study-message"></p>
+
+<h2>How many coffees did you have?</h2>
+
+<input
+    type="number"
+    id="coffee"
+    placeholder="Cups"
+    min="0"
+>
+
+<button onclick="saveCoffee()">SAVE COFFEE</button>
+
+<p id="coffee-message"></p>
+
+<h2>How do you feel today?</h2>
+
+<div class="mood-buttons">
+    <button onclick="saveMood(1)">😞</button>
+    <button onclick="saveMood(2)">😐</button>
+    <button onclick="saveMood(3)">🙂</button>
+    <button onclick="saveMood(4)">😄</button>
+    <button onclick="saveMood(5)">🤩</button>
+</div>
+
+<p id="mood-message"></p>
+<hr>
+
+
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
