@@ -23,6 +23,9 @@ function saveSleep() {
 
     document.getElementById("message").textContent =
         "Saved! You slept " + sleep + " hours.";
+
+        updateDashboard();
+        updateWeeklyProgress();
 }
 
 
@@ -44,6 +47,9 @@ function saveWorkout(answer) {
 
     document.getElementById("workout-message").textContent =
         "Workout: " + answer;
+
+        updateDashboard();
+        updateWeeklyProgress();
 }
 
 
@@ -74,6 +80,9 @@ function saveStudy() {
 
     document.getElementById("study-message").textContent =
         "Saved! You studied " + study + " minutes.";
+
+        updateDashboard();
+        updateWeeklyProgress();
 }
 
 
@@ -103,6 +112,9 @@ function saveCoffee() {
 
     document.getElementById("coffee-message").textContent =
         "Saved! You had " + coffee + " coffees.";
+
+        updateDashboard();
+        updateWeeklyProgress();
 }
 
 
@@ -124,6 +136,9 @@ function saveMood(mood) {
 
     document.getElementById("mood-message").textContent =
         "Mood saved: " + mood + "/5";
+
+        updateDashboard();
+        updateWeeklyProgress();
 }
 
 
@@ -193,10 +208,64 @@ function showHistory() {
             localStorage.getItem("mood-" + date) || "-";
 
 
+            // Calculate daily score
+let score = 0;
+
+// Sleep
+if (sleep !== "-") {
+    const sleepNumber = Number(sleep);
+
+    if (sleepNumber >= 7) {
+        score += 30;
+    } else if (sleepNumber >= 6) {
+        score += 20;
+    } else if (sleepNumber >= 5) {
+        score += 10;
+    }
+}
+
+// Workout
+if (workout === "Yes") {
+    score += 20;
+}
+
+// Study
+if (study !== "-") {
+    const studyNumber = Number(study);
+
+    if (studyNumber >= 60) {
+        score += 20;
+    } else if (studyNumber >= 30) {
+        score += 10;
+    }
+}
+
+// Coffee
+if (coffee !== "-") {
+    const coffeeNumber = Number(coffee);
+
+    if (coffeeNumber <= 3) {
+        score += 10;
+    } else if (coffeeNumber <= 4) {
+        score += 5;
+    }
+}
+
+// Mood
+if (mood !== "-") {
+    const moodNumber = Number(mood);
+    score += moodNumber * 4;
+}
+
+
         history.innerHTML += `
             <div class="history-card">
 
                 <h3>${date}</h3>
+
+                <div class="history-score">
+    ${score}/100
+</div>
 
                 <p>😴 Sleep: ${sleep} hours</p>
 
@@ -232,3 +301,346 @@ function showToday() {
 
     document.getElementById("history-page").style.display = "none";
 }
+
+
+// =========================
+// DASHBOARD
+// =========================
+
+function updateDashboard() {
+
+    // Date
+    const date = new Date();
+
+    const options = {
+        weekday: "long",
+        month: "short",
+        day: "numeric"
+    };
+
+    document.getElementById("dashboard-date").textContent =
+        date.toLocaleDateString("en-US", options);
+
+
+    // Get today's data
+    const sleep =
+        localStorage.getItem("sleep-" + today);
+
+    const workout =
+        localStorage.getItem("workout-" + today);
+
+    const study =
+        localStorage.getItem("study-" + today);
+
+    const coffee =
+        localStorage.getItem("coffee-" + today);
+
+    const mood =
+        localStorage.getItem("mood-" + today);
+
+
+    // Display today's data
+    document.getElementById("dashboard-sleep").textContent =
+        sleep ? sleep + "h" : "-";
+
+    document.getElementById("dashboard-workout").textContent =
+        workout || "-";
+
+    document.getElementById("dashboard-study").textContent =
+        study ? study + "m" : "-";
+
+    document.getElementById("dashboard-coffee").textContent =
+        coffee || "-";
+
+    document.getElementById("dashboard-mood").textContent =
+        mood ? mood + "/5" : "-";
+
+
+    // =========================
+    // CALCULATE SCORE
+    // =========================
+
+    let score = 0;
+
+
+    // Sleep: 30 points
+    if (sleep) {
+
+        const sleepNumber = Number(sleep);
+
+        if (sleepNumber >= 7) {
+            score += 30;
+        } else if (sleepNumber >= 6) {
+            score += 20;
+        } else if (sleepNumber >= 5) {
+            score += 10;
+        }
+    }
+
+
+    // Workout: 20 points
+    if (workout === "Yes") {
+        score += 20;
+    }
+
+
+    // Study: 20 points
+    if (study) {
+
+        const studyNumber = Number(study);
+
+        if (studyNumber >= 60) {
+            score += 20;
+        } else if (studyNumber >= 30) {
+            score += 10;
+        }
+    }
+
+
+    // Coffee: 10 points
+    if (coffee) {
+
+        const coffeeNumber = Number(coffee);
+
+        if (coffeeNumber <= 3) {
+            score += 10;
+        } else if (coffeeNumber <= 4) {
+            score += 5;
+        }
+    }
+
+
+    // Mood: 20 points
+    if (mood) {
+
+        const moodNumber = Number(mood);
+
+        score += moodNumber * 4;
+    }
+
+
+    // Show score
+    document.getElementById("daily-score").textContent =
+        score + "/100";
+}
+
+
+// Update dashboard when page loads
+updateDashboard();
+
+// =========================
+// WEEKLY PROGRESS
+// =========================
+
+function updateWeeklyProgress() {
+
+    let totalScore = 0;
+    let totalSleep = 0;
+    let totalStudy = 0;
+    let workoutDays = 0;
+
+    let daysWithData = 0;
+
+
+    // Check the last 7 days
+    for (let i = 0; i < 7; i++) {
+
+        const date = new Date();
+
+        date.setDate(date.getDate() - i);
+
+        const dateKey =
+            date.toISOString().split("T")[0];
+
+
+        // Get data
+        const sleep =
+            localStorage.getItem("sleep-" + dateKey);
+
+        const workout =
+            localStorage.getItem("workout-" + dateKey);
+
+        const study =
+            localStorage.getItem("study-" + dateKey);
+
+        const coffee =
+            localStorage.getItem("coffee-" + dateKey);
+
+        const mood =
+            localStorage.getItem("mood-" + dateKey);
+
+
+        // Skip days with no check-in
+        if (
+            sleep === null &&
+            workout === null &&
+            study === null &&
+            coffee === null &&
+            mood === null
+        ) {
+            continue;
+        }
+
+
+        daysWithData++;
+
+
+        // Sleep
+        if (sleep !== null) {
+
+            const sleepNumber = Number(sleep);
+
+            totalSleep += sleepNumber;
+        }
+
+
+        // Study
+        if (study !== null) {
+
+            const studyNumber = Number(study);
+
+            totalStudy += studyNumber;
+        }
+
+
+        // Workout
+        if (workout === "Yes") {
+
+            workoutDays++;
+        }
+
+
+        // Calculate daily score
+        let score = 0;
+
+
+        // Sleep = 30 points
+        if (sleep !== null) {
+
+            const sleepNumber = Number(sleep);
+
+            if (sleepNumber >= 7) {
+                score += 30;
+            } else if (sleepNumber >= 6) {
+                score += 20;
+            } else if (sleepNumber >= 5) {
+                score += 10;
+            }
+        }
+
+
+        // Workout = 20 points
+        if (workout === "Yes") {
+            score += 20;
+        }
+
+
+        // Study = 20 points
+        if (study !== null) {
+
+            const studyNumber = Number(study);
+
+            if (studyNumber >= 60) {
+                score += 20;
+            } else if (studyNumber >= 30) {
+                score += 10;
+            }
+        }
+
+
+        // Coffee = 10 points
+        if (coffee !== null) {
+
+            const coffeeNumber = Number(coffee);
+
+            if (coffeeNumber <= 3) {
+                score += 10;
+            } else if (coffeeNumber <= 4) {
+                score += 5;
+            }
+        }
+
+
+        // Mood = 20 points
+        if (mood !== null) {
+
+            const moodNumber = Number(mood);
+
+            score += moodNumber * 4;
+        }
+
+
+        totalScore += score;
+    }
+
+
+    // =========================
+    // DISPLAY RESULTS
+    // =========================
+
+    if (daysWithData === 0) {
+
+        document.getElementById("weekly-score").textContent = "0%";
+        document.getElementById("weekly-sleep").textContent = "0h";
+        document.getElementById("weekly-study").textContent = "0m";
+        document.getElementById("weekly-workout").textContent = "0";
+
+        document.getElementById("weekly-progress-fill").style.width = "0%";
+
+        document.getElementById("weekly-progress-text").textContent =
+            "Start checking in every day.";
+
+        return;
+    }
+
+
+    // Average score
+    const averageScore =
+        Math.round(totalScore / daysWithData);
+
+
+    // Average sleep
+    const averageSleep =
+        (totalSleep / daysWithData).toFixed(1);
+
+
+    // Update HTML
+   document.getElementById("weekly-score").textContent =
+    averageScore + "%";
+
+    document.getElementById("weekly-sleep").textContent =
+        averageSleep + "h";
+
+    document.getElementById("weekly-study").textContent =
+        totalStudy + "m";
+
+    document.getElementById("weekly-workout").textContent =
+        workoutDays;
+
+
+    // Progress bar
+    document.getElementById("weekly-progress-fill").style.width =
+        averageScore + "%";
+
+
+    // Message
+    if (averageScore >= 80) {
+
+    document.getElementById("weekly-progress-text").textContent =
+        averageScore + "% — 🔥 Great week! Keep going.";
+
+} else if (averageScore >= 60) {
+
+    document.getElementById("weekly-progress-text").textContent =
+        averageScore + "% — 👍 You're doing well. Keep improving.";
+
+} else {
+
+    document.getElementById("weekly-progress-text").textContent =
+        averageScore + "% — 💪 Keep going. You can do better.";
+}
+}
+
+
+// Update weekly progress
+updateWeeklyProgress();

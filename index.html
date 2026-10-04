@@ -1,4 +1,19 @@
-```html
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Daily Check-In</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+
 <body>
 
     <div class="app">
@@ -11,7 +26,95 @@
         <!-- TODAY PAGE -->
         <div id="today-page">
 
-            <h1>DAILY CHECK-IN</h1>
+            <!-- DASHBOARD -->
+<div class="dashboard">
+
+    <h1>DAILY CHECK-IN</h1>
+
+    <p id="dashboard-date"></p>
+
+    <div class="score-card">
+        <div class="score-number" id="daily-score">0</div>
+        <div class="score-label">TODAY'S SCORE</div>
+    </div>
+
+    <div class="stats">
+
+        <div class="stat-card">
+            <span>😴</span>
+            <strong id="dashboard-sleep">-</strong>
+            <small>Sleep</small>
+        </div>
+
+        <div class="stat-card">
+            <span>💪</span>
+            <strong id="dashboard-workout">-</strong>
+            <small>Workout</small>
+        </div>
+
+        <div class="stat-card">
+            <span>📚</span>
+            <strong id="dashboard-study">-</strong>
+            <small>Study</small>
+        </div>
+
+        <div class="stat-card">
+            <span>☕</span>
+            <strong id="dashboard-coffee">-</strong>
+            <small>Coffee</small>
+        </div>
+
+        <div class="stat-card">
+            <span>🙂</span>
+            <strong id="dashboard-mood">-</strong>
+            <small>Mood</small>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- WEEKLY PROGRESS -->
+<div class="weekly-progress">
+
+    <h2>📊 WEEKLY PROGRESS</h2>
+
+    <div class="weekly-card">
+
+        <div class="weekly-stat">
+            <strong id="weekly-score">0%</strong>
+            <small>Avg Score</small>
+        </div>
+
+        <div class="weekly-stat">
+            <strong id="weekly-sleep">0h</strong>
+            <small>Avg Sleep</small>
+        </div>
+
+        <div class="weekly-stat">
+            <strong id="weekly-study">0m</strong>
+            <small>Study</small>
+        </div>
+
+        <div class="weekly-stat">
+            <strong id="weekly-workout">0</strong>
+            <small>Workouts</small>
+        </div>
+
+    </div>
+
+    <div class="progress-bar">
+        <div id="weekly-progress-fill"></div>
+    </div>
+
+   
+       <p id="weekly-progress-text">
+    0% weekly progress
+</p>
+    
+
+</div>
+
 
             <p>How many hours did you sleep?</p>
 
