@@ -378,15 +378,17 @@ input:focus {
     font-weight: bold;
     cursor: pointer;
 }
-
-.workout-buttons button:first-child {
-    background: #1f2937;
-    color: white;
-}
-
-.workout-buttons button:last-child {
+.workout-buttons button {
     background: #e5e7eb;
     color: #333;
+    border: 2px solid transparent;
+}
+
+.workout-buttons button.selected {
+    background: #111827;
+    color: white;
+    border: 2px solid #111827;
+    transform: scale(1.03);
 }
 
 
@@ -555,3 +557,81 @@ input:focus {
     }
 }
 
+#save-checkin-button {
+    display: block;
+    width: 100%;
+    max-width: 450px;
+
+    margin: 30px auto 10px;
+
+    padding: 18px;
+
+    border: none;
+    border-radius: 16px;
+
+    background: #111827;
+    color: white;
+
+    font-size: 16px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+#save-checkin-button:hover {
+    transform: translateY(-2px);
+}
+
+#checkin-message {
+    min-height: 20px;
+    margin: 10px auto 0;
+
+    text-align: center;
+
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.workout-buttons button.selected {
+    background: #111827;
+    color: white;
+    border: 2px solid #111827;
+    transform: scale(1.03);
+}
+
+.mood-buttons button.selected {
+    background: #111827;
+    border: 3px solid #111827;
+    transform: scale(1.12);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.workout-buttons button:hover {
+    background: #111827;
+    color: white;
+    transform: translateY(-2px);
+}
+
+#daily-note {
+    width: 100%;
+    padding: 15px;
+    margin-top: 10px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 14px;
+
+    font-size: 15px;
+    line-height: 1.6;
+    font-family: inherit;
+
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+}
+
+#daily-note:focus {
+    border-color: #111827;
+    box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+}

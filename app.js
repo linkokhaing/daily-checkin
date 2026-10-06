@@ -41,24 +41,27 @@ if (savedSleep !== null) {
 // WORKOUT
 // =========================
 
-function saveWorkout(answer) {
+// =========================
+// WORKOUT
+// =========================
 
-    localStorage.setItem("workout-" + today, answer);
+let selectedWorkout = localStorage.getItem("workout-" + today) || "";
 
-    document.getElementById("workout-message").textContent =
-        "Workout: " + answer;
+function selectWorkout(answer) {
 
-        updateDashboard();
-        updateWeeklyProgress();
-}
+    selectedWorkout = answer;
 
+    const yesButton = document.getElementById("workout-yes");
+    const noButton = document.getElementById("workout-no");
 
-// Load saved workout
-const savedWorkout = localStorage.getItem("workout-" + today);
+    yesButton.classList.remove("selected");
+    noButton.classList.remove("selected");
 
-if (savedWorkout !== null) {
-    document.getElementById("workout-message").textContent =
-        "Workout: " + savedWorkout;
+    if (answer === "Yes") {
+        yesButton.classList.add("selected");
+    } else {
+        noButton.classList.add("selected");
+    }
 }
 
 
@@ -130,26 +133,21 @@ if (savedCoffee !== null) {
 // MOOD
 // =========================
 
-function saveMood(mood) {
+let selectedMood = localStorage.getItem("mood-" + today) || "";
 
-    localStorage.setItem("mood-" + today, mood);
+function selectMood(mood) {
 
-    document.getElementById("mood-message").textContent =
-        "Mood saved: " + mood + "/5";
+    selectedMood = mood;
 
-        updateDashboard();
-        updateWeeklyProgress();
+    const moodButtons =
+        document.querySelectorAll(".mood-buttons button");
+
+    moodButtons.forEach(button => {
+        button.classList.remove("selected");
+    });
+
+    moodButtons[mood - 1].classList.add("selected");
 }
-
-
-// Load saved mood
-const savedMood = localStorage.getItem("mood-" + today);
-
-if (savedMood !== null) {
-    document.getElementById("mood-message").textContent =
-        "Mood saved: " + savedMood + "/5";
-}
-
 
 // =========================
 // HISTORY
@@ -176,9 +174,9 @@ function showHistory() {
         // workout-2026-09-30
         // study-2026-09-30
 
-        const match = key.match(
-            /^(sleep|workout|study|coffee|mood)-(\d{4}-\d{2}-\d{2})$/
-        );
+       const match = key.match(
+    /^(sleep|workout|study|coffee|mood|note)-(\d{4}-\d{2}-\d{2})$/
+);
 
         if (match) {
             dates.add(match[2]);
@@ -206,6 +204,9 @@ function showHistory() {
 
         const mood =
             localStorage.getItem("mood-" + date) || "-";
+        
+        const note =
+        localStorage.getItem("note-" + date) || "";    
 
 
             // Calculate daily score
@@ -276,6 +277,8 @@ if (mood !== "-") {
                 <p>☕ Coffee: ${coffee} cups</p>
 
                 <p>🙂 Mood: ${mood}/5</p>
+
+                ${note ? `<p>📝 ${note}</p>` : ""}
 
             </div>
         `;
@@ -644,3 +647,51 @@ function updateWeeklyProgress() {
 
 // Update weekly progress
 updateWeeklyProgress();
+function saveCheckIn() {
+
+    const sleep = document.getElementById("sleep").value;
+    const study = document.getElementById("study").value;
+    const coffee = document.getElementById("coffee").value;
+    const note = document.getElementById("daily-note").value;
+
+    if (
+        sleep === "" ||
+        study === "" ||
+        coffee === "" ||
+        !selectedWorkout ||
+        !selectedMood
+    ) {
+        return;
+    }
+
+    // Save everything
+    localStorage.setItem("sleep-" + today, sleep);
+    localStorage.setItem("workout-" + today, selectedWorkout);
+    localStorage.setItem("study-" + today, study);
+    localStorage.setItem("coffee-" + today, coffee);
+    localStorage.setItem("mood-" + today, selectedMood);
+    localStorage.setItem("note-" + today, note);
+
+    // Update dashboard
+    updateDashboard();
+    updateWeeklyProgress();
+
+    // Change button appearance
+    const button =
+        document.getElementById("save-checkin-button");
+
+    button.classList.add("saved");
+    button.textContent = "✓ CHECK-IN SAVED";
+
+    // Return to normal after a short time
+    setTimeout(() => {
+        button.classList.remove("saved");
+        button.textContent = "SAVE TODAY'S CHECK-IN";
+    }, 2000);
+}
+
+const savedNote = localStorage.getItem("note-" + today);
+
+if (savedNote !== null) {
+    document.getElementById("daily-note").value = savedNote;
+}

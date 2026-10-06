@@ -116,7 +116,7 @@
 </div>
 
 
-            <p>How many hours did you sleep?</p>
+            <h2>How many hours did you sleep?</h2>
 
             <input
                 type="number"
@@ -125,7 +125,7 @@
                 step="0.5"
             >
 
-            <button onclick="saveSleep()">SAVE</button>
+           
 
             <p id="message"></p>
 
@@ -133,11 +133,11 @@
             <h2>Did you exercise today?</h2>
 
             <div class="workout-buttons">
-                <button onclick="saveWorkout('Yes')">YES</button>
-                <button onclick="saveWorkout('No')">NO</button>
-            </div>
+              <button id="workout-yes" onclick="selectWorkout('Yes')">YES</button>
+              <button id="workout-no" onclick="selectWorkout('No')">NO</button>
+          </div>
 
-            <p id="workout-message"></p>
+            
 
 
             <h2>How long did you study?</h2>
@@ -148,8 +148,6 @@
                 placeholder="Minutes"
                 min="0"
             >
-
-            <button onclick="saveStudy()">SAVE STUDY</button>
 
             <p id="study-message"></p>
 
@@ -162,23 +160,31 @@
                 placeholder="Cups"
                 min="0"
             >
-
-            <button onclick="saveCoffee()">SAVE COFFEE</button>
-
-            <p id="coffee-message"></p>
-
-
+             
             <h2>How do you feel today?</h2>
+        
+        <div class="mood-buttons">
+            <button onclick="selectMood(1)">😞</button>
+            <button onclick="selectMood(2)">😐</button>
+            <button onclick="selectMood(3)">🙂</button>
+            <button onclick="selectMood(4)">😄</button>
+            <button onclick="selectMood(5)">🤩</button>
+        </div>
+        
+            
+        <h2>What's on your mind today?</h2>
 
-            <div class="mood-buttons">
-                <button onclick="saveMood(1)">😞</button>
-                <button onclick="saveMood(2)">😐</button>
-                <button onclick="saveMood(3)">🙂</button>
-                <button onclick="saveMood(4)">😄</button>
-                <button onclick="saveMood(5)">🤩</button>
-            </div>
+        <textarea
+            id="daily-note"
+            placeholder="Write anything that's on your mind..."
+            rows="5"
+        ></textarea>
+        
+        <button id="save-checkin-button" onclick="saveCheckIn()">
+            SAVE TODAY'S CHECK-IN
+        </button>
 
-            <p id="mood-message"></p>
+          
 
         </div>
 
@@ -195,4 +201,4 @@
     <script src="app.js"></script>
 
 </body>
-```
+
