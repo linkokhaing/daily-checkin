@@ -2,6 +2,17 @@
 // TODAY'S DATE
 // =========================
 
+
+const SUPABASE_URL = "https://ebaqbraghwkytznubgow.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_hwovr6hWjb-pOuPx6sw_tw_GFbrd7tJ";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+);
+
+
+
 const today = new Date().toISOString().split("T")[0];
 
 
@@ -37,9 +48,6 @@ if (savedSleep !== null) {
 }
 
 
-// =========================
-// WORKOUT
-// =========================
 
 // =========================
 // WORKOUT
@@ -78,6 +86,7 @@ function saveStudy() {
             "Please enter your study time.";
         return;
     }
+
 
     localStorage.setItem("study-" + today, study);
 
@@ -153,143 +162,109 @@ function selectMood(mood) {
 // HISTORY
 // =========================
 
-function showHistory() {
 
+async function showHistory() {
     document.getElementById("today-page").style.display = "none";
     document.getElementById("history-page").style.display = "block";
 
     const history = document.getElementById("history");
+    history.innerHTML = "<h1>HISTORY</h1><p>Loading your check-ins...</p>";
 
-    history.innerHTML = "<h1>HISTORY</h1>";
+    try {
+        const { data: { user }, error: userError } =
+            await supabaseClient.auth.getUser();
 
-    const dates = new Set();
-
-    // Find dates stored in localStorage
-    for (let i = 0; i < localStorage.length; i++) {
-
-        const key = localStorage.key(i);
-
-        // Example:
-        // sleep-2026-09-30
-        // workout-2026-09-30
-        // study-2026-09-30
-
-       const match = key.match(
-    /^(sleep|workout|study|coffee|mood|note)-(\d{4}-\d{2}-\d{2})$/
-);
-
-        if (match) {
-            dates.add(match[2]);
+        if (userError || !user) {
+            throw new Error("Please log in again.");
         }
-    }
 
-    // Newest date first
-    const sortedDates = Array.from(dates).sort().reverse();
+        const { data, error } = await supabaseClient
+            .from("check_ins")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("check_in_date", { ascending: false });
 
+        if (error) {
+            throw error;
+        }
 
-    // Show each day
-    for (const date of sortedDates) {
+        history.innerHTML = "<h1>HISTORY</h1>";
 
-        const sleep =
-            localStorage.getItem("sleep-" + date) || "-";
+        if (!data || data.length === 0) {
+            history.innerHTML += "<p>No check-ins yet.</p>";
+            return;
+        }
 
-        const workout =
-            localStorage.getItem("workout-" + date) || "-";
+        data.forEach(entry => {
+            const sleep = entry.sleep_hours ?? "-";
+            const workout = entry.workout ?? "-";
+            const study = entry.study_minutes ?? "-";
+            const coffee = entry.coffee_cups ?? "-";
+            const mood = entry.mood ?? "-";
+            const note = entry.note ?? "";
 
-        const study =
-            localStorage.getItem("study-" + date) || "-";
+            let score = 0;
 
-        const coffee =
-            localStorage.getItem("coffee-" + date) || "-";
+            if (sleep !== "-") {
+                if (sleep >= 7) score += 30;
+                else if (sleep >= 6) score += 20;
+                else if (sleep >= 5) score += 10;
+            }
 
-        const mood =
-            localStorage.getItem("mood-" + date) || "-";
-        
-        const note =
-        localStorage.getItem("note-" + date) || "";    
+            if (workout === "Yes") score += 20;
 
+            if (study !== "-") {
+                if (study >= 60) score += 20;
+                else if (study >= 30) score += 10;
+            }
 
-            // Calculate daily score
-let score = 0;
+            if (coffee !== "-") {
+                if (coffee <= 3) score += 10;
+                else if (coffee <= 4) score += 5;
+            }
 
-// Sleep
-if (sleep !== "-") {
-    const sleepNumber = Number(sleep);
+            if (mood !== "-") score += mood * 4;
 
-    if (sleepNumber >= 7) {
-        score += 30;
-    } else if (sleepNumber >= 6) {
-        score += 20;
-    } else if (sleepNumber >= 5) {
-        score += 10;
-    }
-}
+            const card = document.createElement("div");
+            card.className = "history-card";
 
-// Workout
-if (workout === "Yes") {
-    score += 20;
-}
+            const heading = document.createElement("h3");
+            heading.textContent = entry.check_in_date;
+            card.appendChild(heading);
 
-// Study
-if (study !== "-") {
-    const studyNumber = Number(study);
+            const scoreElement = document.createElement("div");
+            scoreElement.className = "history-score";
+            scoreElement.textContent = score + "/100";
+            card.appendChild(scoreElement);
 
-    if (studyNumber >= 60) {
-        score += 20;
-    } else if (studyNumber >= 30) {
-        score += 10;
-    }
-}
+            const details = [
+                `😴 Sleep: ${sleep} hours`,
+                `💪 Workout: ${workout}`,
+                `📚 Study: ${study} minutes`,
+                `☕ Coffee: ${coffee} cups`,
+                `🙂 Mood: ${mood}/5`
+            ];
 
-// Coffee
-if (coffee !== "-") {
-    const coffeeNumber = Number(coffee);
+            details.forEach(detail => {
+                const p = document.createElement("p");
+                p.textContent = detail;
+                card.appendChild(p);
+            });
 
-    if (coffeeNumber <= 3) {
-        score += 10;
-    } else if (coffeeNumber <= 4) {
-        score += 5;
-    }
-}
+            if (note) {
+                const p = document.createElement("p");
+                p.textContent = "📝 " + note;
+                card.appendChild(p);
+            }
 
-// Mood
-if (mood !== "-") {
-    const moodNumber = Number(mood);
-    score += moodNumber * 4;
-}
+            history.appendChild(card);
+        });
 
-
-        history.innerHTML += `
-            <div class="history-card">
-
-                <h3>${date}</h3>
-
-                <div class="history-score">
-    ${score}/100
-</div>
-
-                <p>😴 Sleep: ${sleep} hours</p>
-
-                <p>💪 Workout: ${workout}</p>
-
-                <p>📚 Study: ${study} minutes</p>
-
-                <p>☕ Coffee: ${coffee} cups</p>
-
-                <p>🙂 Mood: ${mood}/5</p>
-
-                ${note ? `<p>📝 ${note}</p>` : ""}
-
-            </div>
-        `;
-    }
-
-
-    // If there is no history
-    if (sortedDates.length === 0) {
-
-        history.innerHTML +=
-            "<p>No check-ins yet.</p>";
+    } catch (error) {
+        console.error("History loading failed:", error);
+        history.innerHTML =
+            "<h1>HISTORY</h1><p>Could not load your check-ins: " +
+            error.message + "</p>";
     }
 }
 
@@ -647,12 +622,16 @@ function updateWeeklyProgress() {
 
 // Update weekly progress
 updateWeeklyProgress();
-function saveCheckIn() {
 
+
+async function saveCheckIn() {
     const sleep = document.getElementById("sleep").value;
     const study = document.getElementById("study").value;
     const coffee = document.getElementById("coffee").value;
     const note = document.getElementById("daily-note").value;
+
+    const message = document.getElementById("message");
+    const button = document.getElementById("save-checkin-button");
 
     if (
         sleep === "" ||
@@ -661,37 +640,540 @@ function saveCheckIn() {
         !selectedWorkout ||
         !selectedMood
     ) {
+        message.textContent =
+            "Please complete all sections before saving.";
         return;
     }
 
-    // Save everything
-    localStorage.setItem("sleep-" + today, sleep);
-    localStorage.setItem("workout-" + today, selectedWorkout);
-    localStorage.setItem("study-" + today, study);
-    localStorage.setItem("coffee-" + today, coffee);
-    localStorage.setItem("mood-" + today, selectedMood);
-    localStorage.setItem("note-" + today, note);
+    button.disabled = true;
+    message.textContent = "Saving your check-in...";
 
-    // Update dashboard
-    updateDashboard();
-    updateWeeklyProgress();
+    try {
+        const {
+            data: { user },
+            error: userError
+        } = await supabaseClient.auth.getUser();
 
-    // Change button appearance
-    const button =
-        document.getElementById("save-checkin-button");
+        if (userError || !user) {
+            throw new Error("Please log in again before saving.");
+        }
 
-    button.classList.add("saved");
-    button.textContent = "✓ CHECK-IN SAVED";
+        const { error } = await supabaseClient
+            .from("check_ins")
+            .upsert(
+                {
+                    user_id: user.id,
+                    check_in_date: today,
+                    sleep_hours: Number(sleep),
+                    workout: selectedWorkout,
+                    study_minutes: Number(study),
+                    coffee_cups: Number(coffee),
+                    mood: Number(selectedMood),
+                    note: note
+                },
+                {
+                    onConflict: "user_id,check_in_date"
+                }
+            );
 
-    // Return to normal after a short time
-    setTimeout(() => {
-        button.classList.remove("saved");
-        button.textContent = "SAVE TODAY'S CHECK-IN";
-    }, 2000);
+        if (error) {
+            throw error;
+        }
+
+        // Keep a local copy for now, so we don't lose
+        // your existing browser-based data during migration.
+        localStorage.setItem("sleep-" + today, sleep);
+        localStorage.setItem("workout-" + today, selectedWorkout);
+        localStorage.setItem("study-" + today, study);
+        localStorage.setItem("coffee-" + today, coffee);
+        localStorage.setItem("mood-" + today, selectedMood);
+        localStorage.setItem("note-" + today, note);
+
+        updateDashboard();
+        updateWeeklyProgress();
+
+        message.textContent = "Check-in saved to your account!";
+        button.classList.add("saved");
+        button.textContent = "✓ CHECK-IN SAVED";
+
+    } catch (error) {
+        console.error("Check-in save failed:", error);
+        message.textContent =
+            "Could not save online: " + error.message;
+    } finally {
+        button.disabled = false;
+    }
 }
+
+
+
 
 const savedNote = localStorage.getItem("note-" + today);
 
 if (savedNote !== null) {
     document.getElementById("daily-note").value = savedNote;
 }
+
+
+const authPage = document.getElementById("auth-page");
+const todayPage = document.getElementById("today-page");
+const historyPage = document.getElementById("history-page");
+const authForm = document.getElementById("auth-form");
+const authMessage = document.getElementById("auth-message");
+
+const resetPasswordPage = document.getElementById("reset-password-page");
+const resetPasswordMessage = document.getElementById("reset-password-message");
+const resetPasswordForm = document.getElementById("reset-password-form");
+
+
+
+async function showSignedInApp() {
+    authPage.style.display = "none";
+    todayPage.style.display = "block";
+    historyPage.style.display = "none";
+
+    const nav = document.querySelector("nav");
+    if (nav) nav.style.display = "flex";
+
+    const welcomeName = document.getElementById("welcome-name");
+
+    const { data: { user }, error } =
+        await supabaseClient.auth.getUser();
+
+    if (welcomeName) {
+        const name = user?.user_metadata?.full_name;
+
+        if (error || !user) {
+            welcomeName.textContent = "Welcome!";
+        } else if (user.user_metadata?.has_signed_in_before) {
+            welcomeName.textContent = name
+                ? `Welcome back, ${name}! 👋`
+                : "Welcome back! 👋";
+        } else {
+            welcomeName.textContent = name
+                ? `Welcome, ${name}! 👋`
+                : "Welcome! 👋";
+
+            const { error: updateError } =
+                await supabaseClient.auth.updateUser({
+                    data: { has_signed_in_before: true }
+                });
+
+            if (updateError) {
+                console.error(
+                    "Could not save first sign-in status:",
+                    updateError
+                );
+            }
+        }
+    }
+
+    await loadTodayFromSupabase();
+}
+
+
+function showSignedOutApp() {
+    authPage.style.display = "block";
+    todayPage.style.display = "none";
+    historyPage.style.display = "none";
+
+    const nav = document.querySelector("nav");
+    if (nav) nav.style.display = "none";
+}
+
+authForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const email = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
+
+    authMessage.textContent = "Signing in...";
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (error) {
+        authMessage.textContent = error.message;
+        return;
+    }
+
+    authMessage.textContent = "";
+});
+
+document.getElementById("signup-button").addEventListener("click", async function () {
+    const email = document.getElementById("auth-email").value.trim();
+    const name = document.getElementById("signup-name").value.trim();
+    const password = document.getElementById("auth-password").value;
+
+    if (!name) {
+        authMessage.textContent = "Please enter your name.";
+        return;
+    }
+
+    if (!email || password.length < 6) {
+        authMessage.textContent = "Enter your email and a password with at least 6 characters.";
+        return;
+    }
+
+    authMessage.textContent = "Creating account...";
+
+    const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options: {
+        data: {
+            full_name: name
+        }
+      }
+    });
+
+    if (error) {
+        authMessage.textContent = error.message;
+        return;
+    }
+
+    if (data.session) {
+        authMessage.textContent = "Account created!";
+    } else {
+        authMessage.textContent = "Account created. Check your email to confirm, then log in.";
+    }
+});
+
+
+async function checkAuthSession() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+
+    if (code) {
+        const { error } =
+            await supabaseClient.auth.exchangeCodeForSession(code);
+
+        if (error) {
+            console.error("Recovery code exchange failed:", error);
+            showSignedOutApp();
+            return;
+        }
+
+        // Remove the one-time code from the address bar.
+        window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+        );
+    }
+
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        console.error("Could not get session:", error);
+        showSignedOutApp();
+        return;
+    }
+
+    const isRecovery =
+        params.get("type") === "recovery" ||
+        window.location.hash.includes("type=recovery");
+
+    if (isRecovery) {
+        authPage.style.display = "none";
+        todayPage.style.display = "none";
+        historyPage.style.display = "none";
+
+        const nav = document.querySelector("nav");
+        if (nav) nav.style.display = "none";
+
+        resetPasswordPage.style.display = "flex";
+        return;
+    }
+
+    resetPasswordPage.style.display = "none";
+
+    if (data.session) {
+        showSignedInApp();
+    } else {
+        showSignedOutApp();
+    }
+}
+
+
+
+supabaseClient.auth.onAuthStateChange(function (event, session) {
+    const isRecovery =
+    event === "PASSWORD_RECOVERY" ||
+    new URLSearchParams(window.location.search).get("type") === "recovery" ||
+    new URLSearchParams(window.location.search).has("code") ||
+    window.location.hash.includes("type=recovery");
+
+    if (isRecovery) {
+        authPage.style.display = "none";
+        todayPage.style.display = "none";
+        historyPage.style.display = "none";
+
+        const nav = document.querySelector("nav");
+        if (nav) nav.style.display = "none";
+
+        resetPasswordPage.style.display = "flex";
+        return;
+    }
+
+    resetPasswordPage.style.display = "none";
+
+    if (session) {
+        showSignedInApp();
+    } else {
+        showSignedOutApp();
+    }
+});
+
+
+
+async function loadTodayFromSupabase() {
+    const { data: { user }, error: userError } =
+        await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+        console.error("Could not get logged-in user:", userError);
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from("check_ins")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("check_in_date", today)
+        .maybeSingle();
+
+    if (error) {
+        console.error("Could not load today's check-in:", error);
+        return;
+    }
+
+    if (!data) {
+        document.getElementById("sleep").value = "";
+        document.getElementById("study").value = "";
+        document.getElementById("coffee").value = "";
+        document.getElementById("daily-note").value = "";
+
+        selectedWorkout = "";
+        selectedMood = "";
+
+        document.getElementById("workout-yes").classList.remove("selected");
+        document.getElementById("workout-no").classList.remove("selected");
+
+        document.querySelectorAll(".mood-buttons button")
+            .forEach(button => button.classList.remove("selected"));
+
+        updateDashboard();
+        updateWeeklyProgress();
+        return;
+    }
+
+    document.getElementById("sleep").value = data.sleep_hours ?? "";
+    document.getElementById("study").value = data.study_minutes ?? "";
+    document.getElementById("coffee").value = data.coffee_cups ?? "";
+    document.getElementById("daily-note").value = data.note ?? "";
+
+    selectedWorkout = data.workout ?? "";
+    selectedMood = data.mood ?? "";
+
+    document.getElementById("workout-yes").classList.toggle(
+        "selected", selectedWorkout === "Yes"
+    );
+    document.getElementById("workout-no").classList.toggle(
+        "selected", selectedWorkout === "No"
+    );
+
+    document.querySelectorAll(".mood-buttons button")
+        .forEach((button, index) => {
+            button.classList.toggle(
+                "selected", index + 1 === Number(selectedMood)
+            );
+        });
+
+    localStorage.setItem("sleep-" + today, data.sleep_hours ?? "");
+    localStorage.setItem("workout-" + today, data.workout ?? "");
+    localStorage.setItem("study-" + today, data.study_minutes ?? "");
+    localStorage.setItem("coffee-" + today, data.coffee_cups ?? "");
+    localStorage.setItem("mood-" + today, data.mood ?? "");
+    localStorage.setItem("note-" + today, data.note ?? "");
+
+    updateDashboard();
+    updateWeeklyProgress();
+}
+
+
+async function loadTodayFromSupabase() {
+    const { data: { user }, error: userError } =
+        await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+        console.error("Could not get logged-in user:", userError);
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from("check_ins")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("check_in_date", today)
+        .maybeSingle();
+
+    if (error) {
+        console.error("Could not load today's check-in:", error);
+        return;
+    }
+
+    if (!data) {
+        document.getElementById("sleep").value = "";
+        document.getElementById("study").value = "";
+        document.getElementById("coffee").value = "";
+        document.getElementById("daily-note").value = "";
+
+        selectedWorkout = "";
+        selectedMood = "";
+
+        document.getElementById("workout-yes").classList.remove("selected");
+        document.getElementById("workout-no").classList.remove("selected");
+
+        document.querySelectorAll(".mood-buttons button")
+            .forEach(button => button.classList.remove("selected"));
+
+        updateDashboard();
+        updateWeeklyProgress();
+        return;
+    }
+
+    document.getElementById("sleep").value = data.sleep_hours ?? "";
+    document.getElementById("study").value = data.study_minutes ?? "";
+    document.getElementById("coffee").value = data.coffee_cups ?? "";
+    document.getElementById("daily-note").value = data.note ?? "";
+
+    selectedWorkout = data.workout ?? "";
+    selectedMood = data.mood ?? "";
+
+    document.getElementById("workout-yes").classList.toggle(
+        "selected", selectedWorkout === "Yes"
+    );
+    document.getElementById("workout-no").classList.toggle(
+        "selected", selectedWorkout === "No"
+    );
+
+    document.querySelectorAll(".mood-buttons button")
+        .forEach((button, index) => {
+            button.classList.toggle(
+                "selected", index + 1 === Number(selectedMood)
+            );
+        });
+
+    localStorage.setItem("sleep-" + today, data.sleep_hours ?? "");
+    localStorage.setItem("workout-" + today, data.workout ?? "");
+    localStorage.setItem("study-" + today, data.study_minutes ?? "");
+    localStorage.setItem("coffee-" + today, data.coffee_cups ?? "");
+    localStorage.setItem("mood-" + today, data.mood ?? "");
+    localStorage.setItem("note-" + today, data.note ?? "");
+
+    updateDashboard();
+    updateWeeklyProgress();
+}
+
+checkAuthSession();
+
+
+const togglePasswordButton = document.getElementById("toggle-password");
+const passwordInput = document.getElementById("auth-password");
+
+togglePasswordButton.addEventListener("click", function () {
+    const isHidden = passwordInput.type === "password";
+
+    passwordInput.type = isHidden ? "text" : "password";
+    togglePasswordButton.textContent = isHidden ? "Hide" : "Show";
+});
+
+
+document.querySelectorAll(".toggle-reset-password").forEach(function (button) {
+    button.addEventListener("click", function () {
+        const input = button.previousElementSibling;
+
+        const isHidden = input.type === "password";
+        input.type = isHidden ? "text" : "password";
+        button.textContent = isHidden ? "Hide" : "Show";
+    });
+});
+
+
+
+const forgotPasswordButton = document.getElementById("forgot-password-button");
+
+forgotPasswordButton.addEventListener("click", async function () {
+    const email = document.getElementById("auth-email").value.trim();
+    const authMessage = document.getElementById("auth-message");
+
+   
+    if (!email) {
+        authMessage.textContent = "Please enter your email address first.";
+        document.getElementById("auth-email").focus();
+        return;
+    }
+
+    authMessage.textContent = "Sending password reset email...";
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname
+    });
+
+    if (error) {
+        authMessage.textContent = error.message;
+        return;
+    }
+
+    authMessage.textContent =
+        "If an account exists for this email, you may receive a password reset link. Check your inbox.";
+});
+
+
+
+
+resetPasswordForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const newPassword = document.getElementById("new-password").value;
+    const confirmPassword = document.getElementById("confirm-password").value;
+
+    if (newPassword.length < 6) {
+        resetPasswordMessage.textContent =
+            "Your password must be at least 6 characters long.";
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        resetPasswordMessage.textContent =
+            "The passwords do not match.";
+        return;
+    }
+
+    resetPasswordMessage.textContent = "Updating your password...";
+
+    const { error } = await supabaseClient.auth.updateUser({
+        password: newPassword
+    });
+
+    if (error) {
+        resetPasswordMessage.textContent = error.message;
+        return;
+    }
+
+    resetPasswordMessage.textContent =
+        "Password updated successfully! You can now sign in with your new password.";
+
+    resetPasswordForm.reset();
+
+await supabaseClient.auth.signOut();
+
+resetPasswordPage.style.display = "none";
+showSignedOutApp();
+
+authMessage.textContent =
+    "Password updated successfully. Please sign in with your new password.";
+});
