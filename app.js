@@ -728,6 +728,8 @@ const resetPasswordForm = document.getElementById("reset-password-form");
 
 
 async function showSignedInApp() {
+    document.body.classList.remove("auth-screen");
+
     authPage.style.display = "none";
     todayPage.style.display = "block";
     historyPage.style.display = "none";
@@ -773,13 +775,17 @@ async function showSignedInApp() {
 
 
 function showSignedOutApp() {
-    authPage.style.display = "block";
+    document.body.classList.add("auth-screen");
+
+    authPage.style.display = "flex";
+    resetPasswordPage.style.display = "none";
     todayPage.style.display = "none";
     historyPage.style.display = "none";
 
     const nav = document.querySelector("nav");
     if (nav) nav.style.display = "none";
 }
+
 
 authForm.addEventListener("submit", async function (event) {
     event.preventDefault();
@@ -877,6 +883,8 @@ async function checkAuthSession() {
         window.location.hash.includes("type=recovery");
 
     if (isRecovery) {
+        document.body.classList.add("auth-screen");
+        
         authPage.style.display = "none";
         todayPage.style.display = "none";
         historyPage.style.display = "none";
